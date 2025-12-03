@@ -1,0 +1,294 @@
+<div class="container mx-auto p-4 md:p-8 bg-gray-50 min-h-screen">
+    <h1 class="text-4xl font-extrabold text-indigo-700 mb-8 text-center border-b pb-4">Catálogo de Productos</h1>
+
+    <div class="flex flex-wrap justify-between items-center mb-6 p-4 bg-white rounded-xl shadow">
+        <div class="flex items-center space-x-3 mb-4 md:mb-0">
+            <span class="text-sm font-semibold text-gray-700">Ordenar por Precio:</span>
+            
+            <button 
+                class="btn-sort px-4 py-2 text-sm rounded-lg font-medium transition duration-150 bg-gray-200 text-gray-700 hover:bg-gray-700 hover:text-white"
+                onclick="updateUrlParameter('sort', 'asc')"
+            >
+                $ Bajo a Alto
+            </button>
+            <button 
+                class="btn-sort px-4 py-2 text-sm rounded-lg font-medium transition duration-150 bg-gray-200 text-gray-700 hover:bg-gray-700 hover:text-white"
+                onclick="updateUrlParameter('sort', 'desc')"
+            >
+                $ Alto a Bajo
+            </button>
+            <button 
+                class="px-3 py-1 text-sm rounded-full text-gray-500 hover:text-red-600 border border-gray-300 hover:border-red-600 transition-colors"
+                onclick="clearParam('sort')"
+            >
+                &times; Resetear
+            </button>
+        </div>
+        <div class="w-full md:w-auto flex items-center space-x-2">
+            <label for="status-filter" class="text-sm font-semibold text-gray-700">Disponibilidad:</label>
+            <select id="status-filter" 
+                    class="p-2 border border-gray-300 rounded-lg text-sm bg-white shadow-sm"
+                    onchange="changeStatus(this.value)">
+                <option value="">Todos</option>
+                <option value="true">Disponible</option>
+                <option value="false">Agotado</option>
+            </select>
+            <button 
+                class="px-3 py-1 text-sm rounded-full text-gray-500 hover:text-red-600 border border-gray-300 hover:border-red-600 transition-colors"
+                onclick="clearParam('query')"
+            >
+                &times; Resetear
+            </button>
+        </div>
+    </div>
+    
+    <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {{#each products}}
+        <div class="product-card bg-white rounded-xl shadow-lg p-5 flex flex-col justify-between h-full transition duration-300 hover:shadow-xl hover:scale-[1.02]">
+            <div>
+                <a href="/products/{{this._id}}" class="block mb-3">
+                    <div class="h-40 w-full bg-gray-100 flex items-center justify-center rounded-lg text-gray-500 font-medium">
+                        {{#if this.thumbnails.[0]}}
+                            <img src="{{this.thumbnails.[0]}}" alt="{{this.title}}" class="max-h-full object-contain">
+                        {{else}}
+                            (Sin Imagen)
+                        {{/if}}
+                    </div>
+                </a>
+
+                <a href="/products/{{this._id}}" class="block hover:text-indigo-600 transition-colors">
+                    <h2 class="text-xl font-bold text-gray-800">{{this.title}}</h2>
+                </a>
+                
+                <p class="text-3xl font-extrabold text-indigo-600">${{this.price}}</p>
+                <p class="text-sm {{#if this.stock}}text-green-600{{else}}text-red-600{{/if}}">
+                    Stock actual: {{#if this.stock}}{{this.stock}}{{else}}Agotado{{/if}}
+                </p>
+            </div>
+            <div class="mt-3"> 
+                <button 
+                    {{#unless this.stock}}disabled{{/unless}}
+                    class="w-full py-2 rounded-lg font-bold transition duration-300 
+                        {{#if this.stock}}bg-emerald-600 hover:bg-emerald-700 text-white{{else}}bg-gray-400 text-gray-700 cursor-not-allowed{{/if}}"
+                    onclick="addToCart('{{this._id}}', '{{this.title}}', event)"
+                >
+                    {{#if this.stock}}
+                        Agregar al Carrito
+                    {{else}}
+                        Agotado
+                    {{/if}}
+                </button>
+            </div>
+        </div>
+        {{/each}}
+    </div>
+
+    <div class="flex justify-center items-center mt-10 space-x-4">
+        {{#if paging.hasPrevPage}}
+            <a href="{{paging.prevLink}}" class="bg-gray-800 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">
+                &leftarrow; Anterior
+            </a>
+        {{else}}
+            <span class="bg-gray-300 text-gray-500 font-bold py-2 px-4 rounded-lg cursor-not-allowed">&leftarrow; Anterior</span>
+        {{/if}}
+
+        <span class="text-lg font-semibold text-gray-700">Página {{paging.page}} de {{paging.totalPages}}</span>
+
+        {{#if paging.hasNextPage}}
+            <a href="{{paging.nextLink}}" class="bg-gray-800 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">
+                Siguiente &rightarrow;
+            </a>
+        {{else}}
+            <span class="bg-gray-300 text-gray-500 font-bold py-2 px-4 rounded-lg cursor-not-allowed">Siguiente &rightarrow;</span>
+        {{/if}}
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+
+    const SERVER_CART_ID = '{{cartId}}';
+    const CART_ID_KEY = 'currentCartId';
+    
+    let currentCartId = null;
+
+    function updateUrlParameter(key, value) {
+        const url = new URL(window.location.href);
+        const params = url.searchParams;
+        
+        params.set(key, value);
+        params.set('page', 1);
+
+        window.location.href = url.toString();
+    }
+
+    function clearParam(key) {
+        const url = new URL(window.location.href);
+        const params = url.searchParams;
+        
+        params.delete(key);
+        params.set('page', 1);
+
+        window.location.href = url.toString();
+    }
+
+    function changeStatus(statusValue) {
+        if (statusValue) {
+            updateUrlParameter('query', `status:${statusValue}`); 
+        } else {
+            clearParam('query');
+        }
+    }
+    
+    function updateCartStatusUI(id) {
+        const statusElement = document.getElementById('cart-status');
+        if (!statusElement) return;
+
+        statusElement.classList.remove('bg-red-100', 'text-red-700', 'bg-green-100', 'text-green-700');
+
+        if (id && id !== 'null' && id !== 'undefined') {
+            statusElement.textContent = `Asignado: ${id}`;
+            statusElement.classList.add('bg-green-100', 'text-green-700');
+        } else {
+            statusElement.textContent = 'Aún no asignado (Se creará al añadir el 1er producto)';
+            statusElement.classList.add('bg-red-100', 'text-red-700');
+        }
+    }
+
+    async function createNewCart() {
+        try {
+            const response = await fetch('/api/carts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Error HTTP: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            const newId = data.payload._id;
+
+            localStorage.setItem(CART_ID_KEY, newId);
+            currentCartId = newId; 
+
+            updateCartStatusUI(newId);
+
+            Swal.fire({
+                icon: 'info',
+                title: '¡Carrito Nuevo!',
+                text: 'Se creó un nuevo carrito para tu sesión.',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2500
+            });
+
+            return newId;
+
+        } catch (error) {
+            console.error("Error al crear el carrito:", error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error Crítico',
+                text: 'No se pudo crear el carrito. Recarga la página.',
+                showConfirmButton: true
+            });
+            return null;
+        }
+    }
+
+    async function addToCart(productId, productTitle, event) {
+        
+        if (event) {
+            event.stopPropagation();
+            event.preventDefault();
+            event.target.disabled = true;
+            event.target.classList.add('opacity-50');
+        }
+
+        try {
+            let finalCartId = currentCartId;
+
+            if (!finalCartId || finalCartId === 'null' || finalCartId === 'undefined') {
+                finalCartId = await createNewCart();
+                if (!finalCartId) {
+                    console.error("No se pudo obtener un ID de carrito después de intentar crearlo.");
+                    return; 
+                }
+            }
+
+            const response = await fetch(`/api/carts/${finalCartId}/products/${productId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ quantity: 1 }) 
+            });
+
+            if (response.ok) {
+                Swal.fire({ 
+                    icon: 'success', 
+                    title: '¡Añadido!', 
+                    html: `Se agregó <strong>${productTitle}</strong> al carrito.`,
+                    toast: true,
+                    position: 'bottom-end',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            } else {
+                const errorData = await response.json().catch(() => ({ message: response.statusText }));
+                Swal.fire({ 
+                    icon: 'error', 
+                    title: 'Error al Añadir', 
+                    text: errorData.message || `No se pudo añadir el producto. Código: ${response.status}.`,
+                    toast: true,
+                    position: 'bottom-end',
+                    showConfirmButton: false,
+                    timer: 5000,
+                    timerProgressBar: true
+                });
+            }
+        } catch (error) {
+            console.error('Fallo en la conexión o proceso:', error);
+            Swal.fire({ 
+                icon: 'error', 
+                title: 'Error de Conexión', 
+                text: 'No se pudo completar la operación.',
+                toast: true,
+                position: 'bottom-end',
+                showConfirmButton: false,
+                timer: 5000,
+                timerProgressBar: true
+            });
+        } finally {
+            if (event) {
+                event.target.disabled = false;
+                event.target.classList.remove('opacity-50');
+            }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        let idFromStorage = localStorage.getItem(CART_ID_KEY);
+
+        if (idFromStorage && idFromStorage !== 'null' && idFromStorage !== 'undefined') {
+            currentCartId = idFromStorage;
+        } else if (SERVER_CART_ID && SERVER_CART_ID !== 'null' && SERVER_CART_ID !== 'undefined') {
+            currentCartId = SERVER_CART_ID;
+            localStorage.setItem(CART_ID_KEY, SERVER_CART_ID);
+        }
+        
+        updateCartStatusUI(currentCartId);
+
+        const url = new URL(window.location.href);
+        const queryParam = url.searchParams.get('query');
+        const selectElement = document.getElementById('status-filter');
+        
+        if (selectElement && queryParam && queryParam.startsWith('status:')) {
+            const statusValue = queryParam.split(':')[1];
+            selectElement.value = statusValue; 
+        }
+    });
+
+</script>

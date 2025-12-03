@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}} Coderhouse - eCommerce Final</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f7f7;
+        }
+
+        .card-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+        }
+
+        .btn-primary {
+            transition: all 0.2s ease-in-out;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(99, 102, 241, 0.4);
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col">
+
+    <header class="bg-indigo-600 shadow-lg sticky top-0 z-10">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
+            <a href="/products" class="text-2xl font-bold text-white tracking-wide hover:text-indigo-200">
+                Inicio
+            </a>
+            <div class="flex space-x-4 items-center">
+                <a href="/products" class="text-white hover:text-indigo-200 font-medium">Productos</a>
+                <a id="cart-link" href="#"
+                    class="text-white bg-indigo-500 hover:bg-indigo-700 px-4 py-2 rounded-lg font-medium hidden">Mi
+                    Carrito (ID Dinámico)</a>
+                <span id="no-cart-message"
+                    class="text-gray-300 bg-gray-500 px-4 py-2 rounded-lg font-medium cursor-not-allowed">
+                    Carrito (No iniciado)
+                </span>
+            </div>
+        </nav>
+    </header>
+
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        {{{body}}}
+    </main>
+
+    <footer class="bg-gray-800 text-white text-center py-4 mt-auto">
+        <p class="text-sm">&copy; 2025 Proyecto Final - Backend I</p>
+    </footer>
+
+
+    <div id="messageBox"
+        class="hidden fixed bottom-5 right-5 bg-green-500 text-white p-4 rounded-lg shadow-xl transition-opacity duration-300 opacity-0">
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const cartId = localStorage.getItem('currentCartId');
+            const cartLink = document.getElementById('cart-link');
+            const noCartMessage = document.getElementById('no-cart-message');
+
+            if (cartLink && noCartMessage) {
+                if (cartId) {
+                    cartLink.href = '/carts/' + cartId;
+                    cartLink.textContent = 'Mi Carrito (ID: ' + cartId.substring(0, 4) + '...)';
+                    cartLink.classList.remove('hidden');
+                    noCartMessage.classList.add('hidden');
+                } else {
+                    noCartMessage.classList.remove('hidden');
+                    cartLink.classList.add('hidden');
+                }
+            } else {
+                console.error("Error");
+            }
+        });
+    </script>
+</body>
+
+</html>

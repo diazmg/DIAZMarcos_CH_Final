@@ -148,10 +148,10 @@
         statusElement.classList.remove('bg-red-100', 'text-red-700', 'bg-green-100', 'text-green-700');
 
         if (id && id !== 'null' && id !== 'undefined') {
-            statusElement.textContent = `Asignado: ${id}`;
+            statusElement.textContent = `Creado: ${id}`;
             statusElement.classList.add('bg-green-100', 'text-green-700');
         } else {
-            statusElement.textContent = 'Aún no asignado (Se creará al añadir el 1er producto)';
+            statusElement.textContent = 'Aún no creado (Se creará al añadir el 1er producto)';
             statusElement.classList.add('bg-red-100', 'text-red-700');
         }
     }
@@ -178,7 +178,7 @@
             Swal.fire({
                 icon: 'info',
                 title: '¡Carrito Nuevo!',
-                text: 'Se creó un nuevo carrito para tu sesión.',
+                text: 'Carrito creado correctamente.',
                 toast: true,
                 position: 'top-end',
                 showConfirmButton: false,
@@ -214,7 +214,7 @@
             if (!finalCartId || finalCartId === 'null' || finalCartId === 'undefined') {
                 finalCartId = await createNewCart();
                 if (!finalCartId) {
-                    console.error("No se pudo obtener un ID de carrito después de intentar crearlo.");
+                    console.error("Se ha producido un error al intentar crear un carrito.");
                     return; 
                 }
             }
@@ -228,7 +228,7 @@
             if (response.ok) {
                 Swal.fire({ 
                     icon: 'success', 
-                    title: '¡Añadido!', 
+                    title: '¡Agregado!', 
                     html: `Se agregó <strong>${productTitle}</strong> al carrito.`,
                     toast: true,
                     position: 'bottom-end',
@@ -240,7 +240,7 @@
                 const errorData = await response.json().catch(() => ({ message: response.statusText }));
                 Swal.fire({ 
                     icon: 'error', 
-                    title: 'Error al Añadir', 
+                    title: 'Error al agregar', 
                     text: errorData.message || `No se pudo añadir el producto. Código: ${response.status}.`,
                     toast: true,
                     position: 'bottom-end',
@@ -253,7 +253,7 @@
             console.error('Fallo en la conexión o proceso:', error);
             Swal.fire({ 
                 icon: 'error', 
-                title: 'Error de Conexión', 
+                title: 'Error de conexión', 
                 text: 'No se pudo completar la operación.',
                 toast: true,
                 position: 'bottom-end',
